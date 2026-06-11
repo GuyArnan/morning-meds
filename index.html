@@ -10,58 +10,55 @@
   <link rel="manifest" href="manifest.json">
   <title>Morning Meds</title>
 
-  <!-- Generate apple-touch-icon at runtime so no PNG file is needed -->
+  <!-- Generate apple-touch-icon at runtime (no PNG file needed) -->
   <script>
     (function () {
       try {
         var c = document.createElement('canvas');
         c.width = c.height = 192;
         var x = c.getContext('2d');
-        // Rounded rect background
         var r = 38;
         x.fillStyle = '#1D9E75';
         x.beginPath();
-        x.moveTo(r, 0); x.lineTo(192 - r, 0);
-        x.arcTo(192, 0, 192, r, r); x.lineTo(192, 192 - r);
-        x.arcTo(192, 192, 192 - r, 192, r); x.lineTo(r, 192);
-        x.arcTo(0, 192, 0, 192 - r, r); x.lineTo(0, r);
-        x.arcTo(0, 0, r, 0, r);
+        x.moveTo(r,0); x.lineTo(192-r,0);
+        x.arcTo(192,0,192,r,r); x.lineTo(192,192-r);
+        x.arcTo(192,192,192-r,192,r); x.lineTo(r,192);
+        x.arcTo(0,192,0,192-r,r); x.lineTo(0,r);
+        x.arcTo(0,0,r,0,r);
         x.closePath(); x.fill();
-        // White pill capsule
         x.fillStyle = 'white';
-        var px = 46, py = 72, pw = 100, ph = 48, pr = 24;
+        var px=46,py=72,pw=100,ph=48,pr=24;
         x.beginPath();
-        x.moveTo(px + pr, py); x.lineTo(px + pw - pr, py);
-        x.arcTo(px + pw, py, px + pw, py + pr, pr); x.lineTo(px + pw, py + ph - pr);
-        x.arcTo(px + pw, py + ph, px + pw - pr, py + ph, pr); x.lineTo(px + pr, py + ph);
-        x.arcTo(px, py + ph, px, py + ph - pr, pr); x.lineTo(px, py + pr);
-        x.arcTo(px, py, px + pr, py, pr);
+        x.moveTo(px+pr,py); x.lineTo(px+pw-pr,py);
+        x.arcTo(px+pw,py,px+pw,py+pr,pr); x.lineTo(px+pw,py+ph-pr);
+        x.arcTo(px+pw,py+ph,px+pw-pr,py+ph,pr); x.lineTo(px+pr,py+ph);
+        x.arcTo(px,py+ph,px,py+ph-pr,pr); x.lineTo(px,py+pr);
+        x.arcTo(px,py,px+pr,py,pr);
         x.closePath(); x.fill();
-        // Centre divider
         x.fillStyle = '#1D9E75';
-        x.fillRect(94, 72, 4, 48);
+        x.fillRect(94,72,4,48);
         var lnk = document.createElement('link');
         lnk.rel = 'apple-touch-icon';
         lnk.href = c.toDataURL('image/png');
         document.head.appendChild(lnk);
-      } catch (e) { /* canvas not available */ }
+      } catch(e) {}
     })();
   </script>
 
   <style>
     :root {
-      --bg:           #F8F7F4;
-      --card:         #FFFFFF;
-      --teal:         #1D9E75;
-      --teal-light:   #E5F5EF;
-      --teal-mid:     rgba(29,158,117,0.35);
-      --text:         #2D2D2D;
-      --muted:        #8A8A8A;
-      --border:       #EBEBEB;
-      --danger:       #D95F5F;
-      --radius:       14px;
-      --safe-top:     env(safe-area-inset-top,    0px);
-      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+      --bg:          #F8F7F4;
+      --card:        #FFFFFF;
+      --teal:        #1D9E75;
+      --teal-light:  #E5F5EF;
+      --teal-mid:    rgba(29,158,117,0.35);
+      --text:        #2D2D2D;
+      --muted:       #8A8A8A;
+      --border:      #EBEBEB;
+      --danger:      #D95F5F;
+      --radius:      14px;
+      --safe-top:    env(safe-area-inset-top,    0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -87,23 +84,18 @@
       padding: 20px 0 18px;
       gap: 14px;
     }
-
     .streak-row {
       display: flex;
       align-items: baseline;
       gap: 6px;
     }
-
     .flame { font-size: 30px; line-height: 1; margin-right: 2px; }
-
     .streak-number {
       font-size: 48px;
       font-weight: 800;
       line-height: 1;
       letter-spacing: -1px;
-      color: var(--text);
     }
-
     .streak-label {
       font-size: 15px;
       font-weight: 500;
@@ -117,7 +109,6 @@
       gap: 9px;
       align-items: center;
     }
-
     .week-dot {
       width: 11px;
       height: 11px;
@@ -155,7 +146,7 @@
     .completion-banner h2 { font-size: 17px; font-weight: 700; margin-top: 6px; }
     .completion-banner p  { font-size: 13px; margin-top: 3px; opacity: 0.88; }
 
-    /* ── Med list ── */
+    /* ── Med cards ── */
     .med-list { display: flex; flex-direction: column; gap: 8px; }
 
     .empty-state {
@@ -175,15 +166,15 @@
       padding: 12px 14px;
       gap: 10px;
       min-height: 64px;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
     }
     .med-card.taken {
       background: var(--teal-light);
       border-color: var(--teal);
     }
+    .med-card.not-due { opacity: 0.5; }
 
     .med-info { flex: 1; min-width: 0; }
-
     .med-name {
       font-size: 16px;
       font-weight: 600;
@@ -192,7 +183,6 @@
       text-overflow: ellipsis;
     }
     .med-card.taken .med-name { color: var(--teal); }
-
     .med-dose {
       font-size: 13px;
       color: var(--muted);
@@ -217,11 +207,19 @@
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s, color 0.15s;
     }
-    .take-btn.taken {
-      background: var(--teal);
-      color: #fff;
-    }
+    .take-btn.taken { background: var(--teal); color: #fff; }
     .take-btn:active { opacity: 0.8; }
+
+    .due-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--border);
+      border-radius: 12px;
+      padding: 4px 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
 
     .del-btn {
       width: 40px;
@@ -242,7 +240,7 @@
     }
     .del-btn:hover, .del-btn:focus { color: var(--danger); outline: none; }
 
-    /* ── Add-toggle button ── */
+    /* ── Add toggle ── */
     .add-toggle {
       width: 100%;
       min-height: 50px;
@@ -272,7 +270,6 @@
       overflow: hidden;
       display: none;
     }
-
     .add-form-inner {
       padding: 16px;
       display: flex;
@@ -294,10 +291,34 @@
       outline: none;
       font-family: inherit;
     }
-    input[type="text"]:focus,
-    input[type="time"]:focus { border-color: var(--teal); }
+    input:focus { border-color: var(--teal); }
 
     .form-row { display: flex; gap: 8px; }
+
+    /* ── Frequency selector ── */
+    .freq-group {
+      display: flex;
+      gap: 6px;
+    }
+    .freq-btn {
+      flex: 1;
+      min-height: 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s;
+    }
+    .freq-btn.selected {
+      border-color: var(--teal);
+      background: var(--teal-light);
+      color: var(--teal);
+    }
 
     .btn-primary {
       flex: 1;
@@ -329,14 +350,13 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Settings card ── */
+    /* ── Settings ── */
     .settings-card {
       background: var(--card);
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
     }
-
     .settings-row {
       display: flex;
       align-items: center;
@@ -345,11 +365,7 @@
       padding: 14px 16px;
       min-height: 60px;
     }
-
-    .settings-row + .settings-row {
-      border-top: 1px solid var(--border);
-    }
-
+    .settings-row + .settings-row { border-top: 1px solid var(--border); }
     .settings-label { font-size: 15px; font-weight: 500; }
     .settings-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
@@ -379,30 +395,19 @@
       transition: background 0.15s, color 0.15s;
     }
     .notif-btn.granted { background: var(--teal); color: #fff; }
-    .notif-btn:disabled {
-      border-color: var(--border);
-      color: var(--muted);
-      cursor: default;
-    }
-
-    /* ── Misc ── */
-    .visually-hidden {
-      position: absolute; width: 1px; height: 1px;
-      padding: 0; margin: -1px; overflow: hidden;
-      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
-    }
+    .notif-btn:disabled { border-color: var(--border); color: var(--muted); cursor: default; }
   </style>
 </head>
 <body>
 
-  <!-- ── Header: streak + dots ── -->
+  <!-- ── Header ── -->
   <header class="header">
     <div class="streak-row" aria-label="Current streak">
       <span class="flame" aria-hidden="true">🔥</span>
       <span class="streak-number" id="streak-number">0</span>
       <span class="streak-label">day streak</span>
     </div>
-    <div class="week-dots" id="week-dots" role="list" aria-label="Last 7 days history"></div>
+    <div class="week-dots" id="week-dots" role="list" aria-label="Last 7 days"></div>
   </header>
 
   <!-- ── Today's meds ── -->
@@ -425,8 +430,13 @@
   <!-- Add form -->
   <div class="add-form" id="add-form" role="form" aria-label="New medication">
     <div class="add-form-inner">
-      <input type="text"  id="med-name-input" placeholder="Medication name"   aria-label="Medication name" maxlength="60" autocomplete="off">
-      <input type="text"  id="med-dose-input" placeholder="Dose  (e.g. 10 mg)" aria-label="Dose" maxlength="40" autocomplete="off">
+      <input type="text" id="med-name-input" placeholder="Medication name"    aria-label="Medication name" maxlength="60" autocomplete="off">
+      <input type="text" id="med-dose-input" placeholder="Dose  (e.g. 10 mg)" aria-label="Dose"            maxlength="40" autocomplete="off">
+      <div class="freq-group" id="freq-group" role="group" aria-label="How often">
+        <button class="freq-btn selected" type="button" data-days="1">Daily</button>
+        <button class="freq-btn"          type="button" data-days="2">Every 2 days</button>
+        <button class="freq-btn"          type="button" data-days="3">Every 3 days</button>
+      </div>
       <div class="form-row">
         <button class="btn-primary" id="add-save-btn"   aria-label="Save medication">Save</button>
         <button class="btn-ghost"   id="add-cancel-btn" aria-label="Cancel">Cancel</button>
@@ -453,7 +463,6 @@
     </div>
   </div>
 
-  <!-- ── Script ── -->
   <script>
     'use strict';
 
@@ -462,21 +471,19 @@
     // ────────────────────────────────────────────────────────────────
     const STORAGE_KEY = 'morningmeds_v1';
 
-    /** @type {{
-     *   medications: Array<{id:string, name:string, dose:string}>,
-     *   today: string,
-     *   taken: Record<string,boolean>,
-     *   streak: number,
-     *   weekHistory: boolean[],
-     *   reminderTime: string,
-     *   notificationFired: boolean
-     * }} */
+    /**
+     * Medication shape:
+     *   { id, name, dose, daysInterval: number, nextDue: 'YYYY-MM-DD' }
+     *
+     * daysInterval = 1 → daily, 2 → every other day, etc.
+     * nextDue = the next calendar date the medication should be taken.
+     */
     let S = {
       medications:      [],
       today:            '',
-      taken:            {},
+      taken:            {},   // { [id]: boolean }
       streak:           0,
-      weekHistory:      [],
+      weekHistory:      [],   // boolean[], oldest first, max 7
       reminderTime:     '08:00',
       notificationFired: false
     };
@@ -488,15 +495,38 @@
         String(d.getDate()).padStart(2, '0');
     }
 
+    function addDays(dateStr, n) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + n);
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
+
+    function daysBetween(a, b) {
+      return Math.round((new Date(b) - new Date(a)) / 86400000);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  Load / save
+    // ────────────────────────────────────────────────────────────────
     function loadState() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         try { Object.assign(S, JSON.parse(raw)); } catch (_) {}
       }
-      // Ensure arrays/objects exist even if storage was partial
+      // Ensure correct types
       if (!Array.isArray(S.medications)) S.medications = [];
       if (!S.taken || typeof S.taken !== 'object') S.taken = {};
       if (!Array.isArray(S.weekHistory)) S.weekHistory = [];
+
+      // Migrate existing meds: fill in daysInterval + nextDue if missing
+      const today = getToday();
+      S.medications.forEach(m => {
+        if (!m.daysInterval) m.daysInterval = 1;
+        if (!m.nextDue)      m.nextDue = S.today || today;
+      });
+
       handleDateChange();
     }
 
@@ -513,31 +543,42 @@
       if (!S.today) {
         // First ever launch
         S.today = today;
-        S.medications.forEach(m => { if (!(m.id in S.taken)) S.taken[m.id] = false; });
+        S.medications.forEach(m => {
+          if (!m.nextDue) m.nextDue = today;
+          if (!(m.id in S.taken)) S.taken[m.id] = false;
+        });
         return;
       }
 
-      if (S.today === today) return; // same day, nothing to do
+      if (S.today === today) return;
 
-      // Calculate how many days have passed
-      const msPerDay = 86400000;
-      const last  = new Date(S.today).getTime();
-      const now   = new Date(today).getTime();
-      const daysDiff = Math.max(1, Math.round((now - last) / msPerDay));
+      const daysDiff = Math.max(1, Math.round((new Date(today) - new Date(S.today)) / 86400000));
 
-      // Was yesterday (the last active day) fully completed?
-      const allDone = S.medications.length > 0 &&
-        S.medications.every(m => S.taken[m.id]);
+      // Which meds were due on S.today?
+      const dueMeds = S.medications.filter(m => (m.nextDue || S.today) <= S.today);
+      const allDone = dueMeds.length > 0 && dueMeds.every(m => S.taken[m.id]);
 
-      // Streak: only continues if exactly 1 day gap and all taken
+      // Streak: only increments if all due meds were taken and exactly 1 day passed
       S.streak = (daysDiff === 1 && allDone) ? S.streak + 1 : 0;
 
-      // Push last day's result then fill any skipped days as missed
+      // Week history
       S.weekHistory.push(allDone);
       for (let i = 1; i < daysDiff; i++) S.weekHistory.push(false);
       while (S.weekHistory.length > 7) S.weekHistory.shift();
 
-      // Reset for today
+      // Advance nextDue for every med that was due
+      S.medications.forEach(m => {
+        if (!m.daysInterval) m.daysInterval = 1;
+        const isDue = (m.nextDue || S.today) <= S.today;
+        if (isDue) {
+          const wasTaken = !!S.taken[m.id];
+          // If taken → advance by full interval; if missed → try again tomorrow
+          m.nextDue = addDays(S.today, wasTaken ? m.daysInterval : 1);
+        }
+        // Non-due meds: nextDue stays unchanged
+      });
+
+      // Reset for new day
       S.today = today;
       const fresh = {};
       S.medications.forEach(m => { fresh[m.id] = false; });
@@ -550,8 +591,13 @@
     // ────────────────────────────────────────────────────────────────
     //  Helpers
     // ────────────────────────────────────────────────────────────────
+    function dueMedsToday() {
+      return S.medications.filter(m => (m.nextDue || S.today) <= S.today);
+    }
+
     function allTaken() {
-      return S.medications.length > 0 && S.medications.every(m => S.taken[m.id]);
+      const due = dueMedsToday();
+      return due.length > 0 && due.every(m => S.taken[m.id]);
     }
 
     function esc(str) {
@@ -562,6 +608,19 @@
 
     function uid() {
       return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function dueLabel(dateStr) {
+      const diff = daysBetween(S.today, dateStr);
+      if (diff <= 0) return 'today';
+      if (diff === 1) return 'tomorrow';
+      return 'in ' + diff + ' days';
+    }
+
+    function freqLabel(daysInterval) {
+      if (daysInterval === 1) return 'Daily';
+      if (daysInterval === 2) return 'Every other day';
+      return 'Every ' + daysInterval + ' days';
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -579,37 +638,25 @@
       const container = document.getElementById('week-dots');
       container.innerHTML = '';
 
-      // Build 7 slots: [6 historical days] + [today]
       const hist   = S.weekHistory.slice(-6);
       const blanks = 6 - hist.length;
-      const slots  = [...Array(blanks).fill(null), ...hist]; // 6 past
+      const slots  = [...Array(blanks).fill(null), ...hist];
 
-      // Today slot
       const todayDone    = allTaken();
-      const todayPartial = !todayDone && S.medications.length > 0 &&
-        S.medications.some(m => S.taken[m.id]);
+      const todayPartial = !todayDone && dueMedsToday().some(m => S.taken[m.id]);
+      const todayVal     = todayDone ? 'done' : todayPartial ? 'partial' : null;
 
-      const todaySlot = todayDone ? 'done' : todayPartial ? 'partial' : null;
-      const all7 = [...slots, todaySlot];
-
-      const labels = (v, isToday) => {
-        if (isToday) {
-          if (v === 'done')    return 'Today: complete';
-          if (v === 'partial') return 'Today: in progress';
-          return 'Today: not started';
-        }
-        if (v === true)  return 'complete';
-        if (v === false) return 'missed';
-        return 'no data';
-      };
-
-      all7.forEach((val, i) => {
+      [...slots, todayVal].forEach((val, i) => {
         const isToday = i === 6;
         const dot = document.createElement('div');
         dot.className = 'week-dot';
         dot.setAttribute('role', 'listitem');
-        dot.setAttribute('aria-label', labels(val, isToday));
-        if (isToday) dot.classList.add('today');
+        if (isToday) {
+          dot.classList.add('today');
+          dot.setAttribute('aria-label', 'Today: ' + (val === 'done' ? 'complete' : val === 'partial' ? 'in progress' : 'not started'));
+        } else {
+          dot.setAttribute('aria-label', val === true ? 'complete' : val === false ? 'missed' : 'no data');
+        }
         if (val === true  || val === 'done')    dot.classList.add('done');
         else if (val === false)                  dot.classList.add('missed');
         else if (val === 'partial')              dot.classList.add('partial');
@@ -620,7 +667,6 @@
     function renderMeds() {
       const list   = document.getElementById('med-list');
       const banner = document.getElementById('completion-banner');
-
       list.innerHTML = '';
 
       if (S.medications.length === 0) {
@@ -633,61 +679,99 @@
         return;
       }
 
+      const due   = S.medications.filter(m => (m.nextDue || S.today) <= S.today);
+      const later = S.medications.filter(m => (m.nextDue || S.today) >  S.today);
+
       banner.style.display = allTaken() ? 'block' : 'none';
 
-      S.medications.forEach(med => {
-        const taken = !!S.taken[med.id];
-        const card  = document.createElement('div');
-        card.className = 'med-card' + (taken ? ' taken' : '');
-        card.setAttribute('role', 'listitem');
+      if (due.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state" style="padding:24px 20px">
+            <div class="emo">✅</div>
+            <p>Nothing due today.</p>
+          </div>`;
+      } else {
+        due.forEach(med => appendMedCard(list, med, true));
+      }
 
-        card.innerHTML = `
-          <div class="med-info">
-            <div class="med-name">${esc(med.name)}</div>
-            ${med.dose ? `<div class="med-dose">${esc(med.dose)}</div>` : ''}
-          </div>
+      if (later.length > 0) {
+        const heading = document.createElement('div');
+        heading.className = 'section-label';
+        heading.style.marginTop = due.length === 0 ? '4px' : '20px';
+        heading.textContent = 'Coming up';
+        list.appendChild(heading);
+        later.forEach(med => appendMedCard(list, med, false));
+      }
+    }
+
+    function appendMedCard(container, med, isDue) {
+      const taken = !!S.taken[med.id];
+      const card  = document.createElement('div');
+
+      const classes = ['med-card'];
+      if (isDue && taken) classes.push('taken');
+      if (!isDue) classes.push('not-due');
+      card.className = classes.join(' ');
+      card.setAttribute('role', 'listitem');
+
+      // Sub-label: dose + frequency info
+      let subLine = '';
+      if (isDue) {
+        const parts = [];
+        if (med.dose) parts.push(med.dose);
+        if (med.daysInterval > 1) parts.push(freqLabel(med.daysInterval));
+        subLine = parts.join(' · ');
+      } else {
+        const parts = [];
+        if (med.daysInterval > 1) parts.push(freqLabel(med.daysInterval));
+        parts.push('Due ' + dueLabel(med.nextDue));
+        subLine = parts.join(' · ');
+      }
+
+      card.innerHTML = `
+        <div class="med-info">
+          <div class="med-name">${esc(med.name)}</div>
+          ${subLine ? `<div class="med-dose">${esc(subLine)}</div>` : ''}
+        </div>
+        ${isDue ? `
           <button
             class="take-btn${taken ? ' taken' : ''}"
-            aria-label="${taken ? 'Undo: mark ' + esc(med.name) + ' as not taken' : 'Mark ' + esc(med.name) + ' as taken'}"
+            aria-label="${taken ? 'Undo: ' + esc(med.name) + ' not taken' : 'Mark ' + esc(med.name) + ' as taken'}"
             data-id="${med.id}">
             ${taken ? '<span aria-hidden="true">✓</span> Taken' : 'Take'}
           </button>
-          <button
-            class="del-btn"
-            aria-label="Remove ${esc(med.name)}"
-            data-del="${med.id}">
-            <span aria-hidden="true">×</span>
-          </button>`;
+        ` : `
+          <span class="due-badge" aria-hidden="true">Soon</span>
+        `}
+        <button class="del-btn" aria-label="Remove ${esc(med.name)}" data-del="${med.id}">
+          <span aria-hidden="true">×</span>
+        </button>`;
 
-        list.appendChild(card);
-      });
+      container.appendChild(card);
 
-      // Toggle take
-      list.querySelectorAll('.take-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          S.taken[btn.dataset.id] = !S.taken[btn.dataset.id];
+      if (isDue) {
+        card.querySelector('.take-btn').addEventListener('click', () => {
+          S.taken[med.id] = !S.taken[med.id];
           saveState();
           render();
+          if (allTaken()) swAllTaken();
         });
-      });
+      }
 
-      // Delete
-      list.querySelectorAll('.del-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (!confirm('Remove this medication?')) return;
-          S.medications = S.medications.filter(m => m.id !== btn.dataset.del);
-          delete S.taken[btn.dataset.del];
-          saveState();
-          render();
-        });
+      card.querySelector('.del-btn').addEventListener('click', () => {
+        if (!confirm('Remove this medication?')) return;
+        S.medications = S.medications.filter(m => m.id !== med.id);
+        delete S.taken[med.id];
+        saveState();
+        render();
       });
     }
 
     function renderSettings() {
       const btn    = document.getElementById('notif-btn');
       const sub    = document.getElementById('notif-sub');
-      const perm   = ('Notification' in window) ? Notification.permission : 'unsupported';
       const timeEl = document.getElementById('reminder-time-input');
+      const perm   = ('Notification' in window) ? Notification.permission : 'unsupported';
 
       timeEl.value = S.reminderTime || '08:00';
 
@@ -700,7 +784,7 @@
         btn.textContent = 'Blocked';
         btn.className   = 'notif-btn';
         btn.disabled    = true;
-        sub.textContent = 'Enable notifications in browser settings';
+        sub.textContent = 'Enable notifications in device settings';
       } else if (perm === 'unsupported') {
         btn.textContent = 'Unavailable';
         btn.className   = 'notif-btn';
@@ -715,18 +799,19 @@
     }
 
     // ────────────────────────────────────────────────────────────────
-    //  Add-form interactions
+    //  Add form
     // ────────────────────────────────────────────────────────────────
-    let formOpen = false;
-
     function setFormOpen(open) {
-      formOpen = open;
       document.getElementById('add-form').style.display   = open ? 'block' : 'none';
       document.getElementById('add-toggle').style.display = open ? 'none'  : 'flex';
       document.getElementById('add-toggle').setAttribute('aria-expanded', String(open));
       if (open) {
         document.getElementById('med-name-input').value = '';
         document.getElementById('med-dose-input').value = '';
+        // Reset frequency to Daily
+        document.querySelectorAll('.freq-btn').forEach((b, i) => {
+          b.classList.toggle('selected', i === 0);
+        });
         document.getElementById('med-name-input').focus();
       }
     }
@@ -734,24 +819,59 @@
     document.getElementById('add-toggle').addEventListener('click', () => setFormOpen(true));
     document.getElementById('add-cancel-btn').addEventListener('click', () => setFormOpen(false));
 
+    // Frequency selector
+    document.getElementById('freq-group').addEventListener('click', e => {
+      const btn = e.target.closest('.freq-btn');
+      if (!btn) return;
+      document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+
     document.getElementById('add-save-btn').addEventListener('click', () => {
       const name = document.getElementById('med-name-input').value.trim();
       const dose = document.getElementById('med-dose-input').value.trim();
       if (!name) { document.getElementById('med-name-input').focus(); return; }
-      S.medications.push({ id: uid(), name, dose });
-      S.taken[S.medications[S.medications.length - 1].id] = false;
+
+      const selectedFreq = document.querySelector('.freq-btn.selected');
+      const daysInterval = selectedFreq ? parseInt(selectedFreq.dataset.days) : 1;
+      const id = uid();
+
+      S.medications.push({ id, name, dose, daysInterval, nextDue: S.today });
+      S.taken[id] = false;
       saveState();
       setFormOpen(false);
       render();
     });
 
-    // Enter key submits
     ['med-name-input', 'med-dose-input'].forEach(id => {
       document.getElementById(id).addEventListener('keydown', e => {
-        if (e.key === 'Enter') document.getElementById('add-save-btn').click();
+        if (e.key === 'Enter')  document.getElementById('add-save-btn').click();
         if (e.key === 'Escape') setFormOpen(false);
       });
     });
+
+    // ────────────────────────────────────────────────────────────────
+    //  Service Worker helpers
+    // ────────────────────────────────────────────────────────────────
+    async function swSend(msg) {
+      if (!('serviceWorker' in navigator)) return;
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if (reg.active) reg.active.postMessage(msg);
+      } catch (_) {}
+    }
+
+    function swSchedule() {
+      swSend({
+        type:         'SCHEDULE',
+        times:        [S.reminderTime || '08:00'],
+        alreadyTaken: allTaken()
+      });
+    }
+
+    function swAllTaken() {
+      swSend({ type: 'ALL_TAKEN' });
+    }
 
     // ────────────────────────────────────────────────────────────────
     //  Notifications
@@ -764,44 +884,25 @@
           body: "You're all set! We'll remind you daily.",
           tag:  'morning-meds-setup'
         });
+        swSchedule();
       }
       renderSettings();
     });
 
     document.getElementById('reminder-time-input').addEventListener('change', e => {
-      S.reminderTime      = e.target.value;
-      S.notificationFired = false; // allow it to fire at the new time today
+      S.reminderTime = e.target.value;
       saveState();
       renderSettings();
+      swSchedule();
     });
 
-    function checkNotification() {
-      if (!('Notification' in window))          return;
-      if (Notification.permission !== 'granted') return;
-      if (S.notificationFired)                   return;
-      if (allTaken())                            return;
-
-      const now  = new Date();
-      const hhmm = String(now.getHours()).padStart(2, '0') + ':' +
-                   String(now.getMinutes()).padStart(2, '0');
-
-      if (hhmm === (S.reminderTime || '08:00')) {
-        S.notificationFired = true;
-        saveState();
-        new Notification('Morning Meds 💊', {
-          body: 'Time to take your medications!',
-          tag:  'morning-meds-reminder'
-        });
-      }
-    }
-
     // ────────────────────────────────────────────────────────────────
-    //  Main loop — poll every minute
+    //  Main loop — poll every minute for midnight rollover
     // ────────────────────────────────────────────────────────────────
     setInterval(() => {
-      handleDateChange(); // catches midnight rollover
-      checkNotification();
+      handleDateChange();
       render();
+      swSchedule();
     }, 60 * 1000);
 
     // ────────────────────────────────────────────────────────────────
@@ -809,6 +910,12 @@
     // ────────────────────────────────────────────────────────────────
     loadState();
     render();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').then(() => {
+        swSchedule();
+      }).catch(err => console.warn('SW registration failed:', err));
+    }
   </script>
 </body>
 </html>
