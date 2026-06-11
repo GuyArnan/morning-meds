@@ -395,7 +395,30 @@
       transition: background 0.15s, color 0.15s;
     }
     .notif-btn.granted { background: var(--teal); color: #fff; }
+    .notif-btn.off     { border-color: var(--border); color: var(--muted); }
     .notif-btn:disabled { border-color: var(--border); color: var(--muted); cursor: default; }
+
+    /* ── Frequency chip (tappable on each med card) ── */
+    .freq-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--teal);
+      background: var(--teal-light);
+      border: none;
+      border-radius: 10px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+      vertical-align: middle;
+      transition: background 0.15s;
+      line-height: 1.6;
+    }
+    .freq-chip:active { background: #c8ead9; }
   </style>
 </head>
 <body>
@@ -479,12 +502,13 @@
      * nextDue = the next calendar date the medication should be taken.
      */
     let S = {
-      medications:      [],
-      today:            '',
-      taken:            {},   // { [id]: boolean }
-      streak:           0,
-      weekHistory:      [],   // boolean[], oldest first, max 7
-      reminderTime:     '08:00',
+      medications:       [],
+      today:             '',
+      taken:             {},      // { [id]: boolean }
+      streak:            0,
+      weekHistory:       [],      // boolean[], oldest first, max 7
+      reminderTime:      '08:00',
+      reminderEnabled:   true,    // false = permission granted but user paused it
       notificationFired: false
     };
 
@@ -515,10 +539,11 @@
       if (raw) {
         try { Object.assign(S, JSON.parse(raw)); } catch (_) {}
       }
-      // Ensure correct types
+      // Ensure correct types / defaults for fields added in later versions
       if (!Array.isArray(S.medications)) S.medications = [];
       if (!S.taken || typeof S.taken !== 'object') S.taken = {};
       if (!Array.isArray(S.weekHistory)) S.weekHistory = [];
+      if (S.reminderEnabled === undefined) S.reminderEnabled = true;
 
       // Migrate existing meds: fill in daysInterval + nextDue if missing
       const today = getToday();
@@ -714,24 +739,23 @@
       card.className = classes.join(' ');
       card.setAttribute('role', 'listitem');
 
-      // Sub-label: dose + frequency info
-      let subLine = '';
+      // Sub-label: dose text + tappable frequency chip
+      // The chip cycles Daily → Every 2 days → Every 3 days on tap
+      const chipLabel = freqLabel(med.daysInterval);
+      let subHTML = '';
       if (isDue) {
-        const parts = [];
-        if (med.dose) parts.push(med.dose);
-        if (med.daysInterval > 1) parts.push(freqLabel(med.daysInterval));
-        subLine = parts.join(' · ');
+        subHTML = (med.dose ? `${esc(med.dose)} · ` : '') +
+          `<button class="freq-chip" data-id="${med.id}" aria-label="Frequency: ${chipLabel}. Tap to change.">${chipLabel} ↻</button>`;
       } else {
-        const parts = [];
-        if (med.daysInterval > 1) parts.push(freqLabel(med.daysInterval));
-        parts.push('Due ' + dueLabel(med.nextDue));
-        subLine = parts.join(' · ');
+        subHTML =
+          `<button class="freq-chip" data-id="${med.id}" aria-label="Frequency: ${chipLabel}. Tap to change.">${chipLabel} ↻</button>` +
+          ` · Due ${esc(dueLabel(med.nextDue))}`;
       }
 
       card.innerHTML = `
         <div class="med-info">
           <div class="med-name">${esc(med.name)}</div>
-          ${subLine ? `<div class="med-dose">${esc(subLine)}</div>` : ''}
+          <div class="med-dose">${subHTML}</div>
         </div>
         ${isDue ? `
           <button
@@ -758,6 +782,15 @@
         });
       }
 
+      // Frequency chip: cycle Daily → Every 2 days → Every 3 days → Daily
+      card.querySelector('.freq-chip').addEventListener('click', () => {
+        const options = [1, 2, 3];
+        const idx = options.indexOf(med.daysInterval || 1);
+        med.daysInterval = options[(idx + 1) % options.length];
+        saveState();
+        render();
+      });
+
       card.querySelector('.del-btn').addEventListener('click', () => {
         if (!confirm('Remove this medication?')) return;
         S.medications = S.medications.filter(m => m.id !== med.id);
@@ -776,15 +809,21 @@
       timeEl.value = S.reminderTime || '08:00';
 
       if (perm === 'granted') {
-        btn.textContent = '✓ On';
-        btn.className   = 'notif-btn granted';
-        btn.disabled    = false;
-        sub.textContent = 'Fires at ' + S.reminderTime + ' if meds aren\'t done';
+        btn.disabled = false;
+        if (S.reminderEnabled) {
+          btn.textContent = '✓ On';
+          btn.className   = 'notif-btn granted';
+          sub.textContent = 'Fires at ' + S.reminderTime + ' · tap to turn off';
+        } else {
+          btn.textContent = 'Off';
+          btn.className   = 'notif-btn off';
+          sub.textContent = 'Reminders paused · tap to turn on';
+        }
       } else if (perm === 'denied') {
         btn.textContent = 'Blocked';
         btn.className   = 'notif-btn';
         btn.disabled    = true;
-        sub.textContent = 'Enable notifications in device settings';
+        sub.textContent = 'Allow notifications in iPhone Settings → [app name]';
       } else if (perm === 'unsupported') {
         btn.textContent = 'Unavailable';
         btn.className   = 'notif-btn';
@@ -862,6 +901,10 @@
     }
 
     function swSchedule() {
+      if (!S.reminderEnabled) {
+        swSend({ type: 'CANCEL' });
+        return;
+      }
       swSend({
         type:         'SCHEDULE',
         times:        [S.reminderTime || '08:00'],
@@ -877,9 +920,22 @@
     //  Notifications
     // ────────────────────────────────────────────────────────────────
     document.getElementById('notif-btn').addEventListener('click', async () => {
-      if (!('Notification' in window) || Notification.permission === 'granted') return;
+      if (!('Notification' in window)) return;
+
+      if (Notification.permission === 'granted') {
+        // Permission already given — just toggle the enabled flag
+        S.reminderEnabled = !S.reminderEnabled;
+        saveState();
+        swSchedule();
+        renderSettings();
+        return;
+      }
+
+      // First time — request browser permission
       const result = await Notification.requestPermission();
       if (result === 'granted') {
+        S.reminderEnabled = true;
+        saveState();
         new Notification('Morning Meds 💊', {
           body: "You're all set! We'll remind you daily.",
           tag:  'morning-meds-setup'
