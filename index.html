@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1D9E75">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Morning Meds">
+  <link rel="manifest" href="manifest.json">
+  <title>Morning Meds</title>
+
+  <!-- Generate apple-touch-icon at runtime so no PNG file is needed -->
+  <script>
+    (function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = c.height = 192;
+        var x = c.getContext('2d');
+        // Rounded rect background
+        var r = 38;
+        x.fillStyle = '#1D9E75';
+        x.beginPath();
+        x.moveTo(r, 0); x.lineTo(192 - r, 0);
+        x.arcTo(192, 0, 192, r, r); x.lineTo(192, 192 - r);
+        x.arcTo(192, 192, 192 - r, 192, r); x.lineTo(r, 192);
+        x.arcTo(0, 192, 0, 192 - r, r); x.lineTo(0, r);
+        x.arcTo(0, 0, r, 0, r);
+        x.closePath(); x.fill();
+        // White pill capsule
+        x.fillStyle = 'white';
+        var px = 46, py = 72, pw = 100, ph = 48, pr = 24;
+        x.beginPath();
+        x.moveTo(px + pr, py); x.lineTo(px + pw - pr, py);
+        x.arcTo(px + pw, py, px + pw, py + pr, pr); x.lineTo(px + pw, py + ph - pr);
+        x.arcTo(px + pw, py + ph, px + pw - pr, py + ph, pr); x.lineTo(px + pr, py + ph);
+        x.arcTo(px, py + ph, px, py + ph - pr, pr); x.lineTo(px, py + pr);
+        x.arcTo(px, py, px + pr, py, pr);
+        x.closePath(); x.fill();
+        // Centre divider
+        x.fillStyle = '#1D9E75';
+        x.fillRect(94, 72, 4, 48);
+        var lnk = document.createElement('link');
+        lnk.rel = 'apple-touch-icon';
+        lnk.href = c.toDataURL('image/png');
+        document.head.appendChild(lnk);
+      } catch (e) { /* canvas not available */ }
+    })();
+  </script>
+
+  <style>
+    :root {
+      --bg:           #F8F7F4;
+      --card:         #FFFFFF;
+      --teal:         #1D9E75;
+      --teal-light:   #E5F5EF;
+      --teal-mid:     rgba(29,158,117,0.35);
+      --text:         #2D2D2D;
+      --muted:        #8A8A8A;
+      --border:       #EBEBEB;
+      --danger:       #D95F5F;
+      --radius:       14px;
+      --safe-top:     env(safe-area-inset-top,    0px);
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-top:    calc(var(--safe-top)    + 12px);
+      padding-bottom: calc(var(--safe-bottom) + 32px);
+      padding-left:  16px;
+      padding-right: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0 18px;
+      gap: 14px;
+    }
+
+    .streak-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .flame { font-size: 30px; line-height: 1; margin-right: 2px; }
+
+    .streak-number {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+      color: var(--text);
+    }
+
+    .streak-label {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--muted);
+      align-self: center;
+    }
+
+    /* ── Week dots ── */
+    .week-dots {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .week-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.25s;
+      flex-shrink: 0;
+    }
+    .week-dot.done    { background: var(--teal); }
+    .week-dot.missed  { background: #CACACA; }
+    .week-dot.partial { background: var(--teal-mid); }
+    .week-dot.today   { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 22px 0 8px 2px;
+    }
+
+    /* ── Completion banner ── */
+    .completion-banner {
+      background: var(--teal);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: center;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .completion-banner .big-emoji { font-size: 30px; }
+    .completion-banner h2 { font-size: 17px; font-weight: 700; margin-top: 6px; }
+    .completion-banner p  { font-size: 13px; margin-top: 3px; opacity: 0.88; }
+
+    /* ── Med list ── */
+    .med-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--muted);
+    }
+    .empty-state .emo { font-size: 38px; margin-bottom: 10px; }
+    .empty-state p { font-size: 15px; line-height: 1.55; }
+
+    .med-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      gap: 10px;
+      min-height: 64px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .med-card.taken {
+      background: var(--teal-light);
+      border-color: var(--teal);
+    }
+
+    .med-info { flex: 1; min-width: 0; }
+
+    .med-name {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .med-card.taken .med-name { color: var(--teal); }
+
+    .med-dose {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .take-btn {
+      min-width: 76px;
+      min-height: 44px;
+      border-radius: 22px;
+      border: 1.5px solid var(--teal);
+      background: transparent;
+      color: var(--teal);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    .take-btn.taken {
+      background: var(--teal);
+      color: #fff;
+    }
+    .take-btn:active { opacity: 0.8; }
+
+    .del-btn {
+      width: 40px;
+      height: 44px;
+      border: none;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      line-height: 1;
+      flex-shrink: 0;
+      border-radius: 8px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.15s;
+    }
+    .del-btn:hover, .del-btn:focus { color: var(--danger); outline: none; }
+
+    /* ── Add-toggle button ── */
+    .add-toggle {
+      width: 100%;
+      min-height: 50px;
+      margin-top: 10px;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .add-toggle:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* ── Add form ── */
+    .add-form {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      margin-top: 10px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .add-form-inner {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input[type="text"],
+    input[type="time"] {
+      width: 100%;
+      min-height: 48px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 16px;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-appearance: none;
+      outline: none;
+      font-family: inherit;
+    }
+    input[type="text"]:focus,
+    input[type="time"]:focus { border-color: var(--teal); }
+
+    .form-row { display: flex; gap: 8px; }
+
+    .btn-primary {
+      flex: 1;
+      min-height: 48px;
+      border-radius: 24px;
+      border: none;
+      background: var(--teal);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:active { opacity: 0.85; }
+
+    .btn-ghost {
+      flex: 1;
+      min-height: 48px;
+      border-radius: 24px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Settings card ── */
+    .settings-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      min-height: 60px;
+    }
+
+    .settings-row + .settings-row {
+      border-top: 1px solid var(--border);
+    }
+
+    .settings-label { font-size: 15px; font-weight: 500; }
+    .settings-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    input[type="time"] {
+      width: auto;
+      min-width: 110px;
+      text-align: center;
+      padding: 0 10px;
+      min-height: 40px;
+      font-size: 15px;
+    }
+
+    .notif-btn {
+      min-height: 40px;
+      min-width: 90px;
+      border-radius: 20px;
+      border: 1.5px solid var(--teal);
+      background: transparent;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 14px;
+      font-family: inherit;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    .notif-btn.granted { background: var(--teal); color: #fff; }
+    .notif-btn:disabled {
+      border-color: var(--border);
+      color: var(--muted);
+      cursor: default;
+    }
+
+    /* ── Misc ── */
+    .visually-hidden {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header: streak + dots ── -->
+  <header class="header">
+    <div class="streak-row" aria-label="Current streak">
+      <span class="flame" aria-hidden="true">🔥</span>
+      <span class="streak-number" id="streak-number">0</span>
+      <span class="streak-label">day streak</span>
+    </div>
+    <div class="week-dots" id="week-dots" role="list" aria-label="Last 7 days history"></div>
+  </header>
+
+  <!-- ── Today's meds ── -->
+  <div class="section-label">Today's medications</div>
+
+  <div class="completion-banner" id="completion-banner" role="status" aria-live="polite">
+    <div class="big-emoji">🎉</div>
+    <h2>All done for today!</h2>
+    <p>Keep it up — your streak is growing.</p>
+  </div>
+
+  <div class="med-list" id="med-list" role="list" aria-label="Medications"></div>
+
+  <!-- Add toggle -->
+  <button class="add-toggle" id="add-toggle" aria-label="Add a new medication" aria-expanded="false">
+    <span aria-hidden="true" style="font-size:18px;line-height:1">＋</span>
+    Add medication
+  </button>
+
+  <!-- Add form -->
+  <div class="add-form" id="add-form" role="form" aria-label="New medication">
+    <div class="add-form-inner">
+      <input type="text"  id="med-name-input" placeholder="Medication name"   aria-label="Medication name" maxlength="60" autocomplete="off">
+      <input type="text"  id="med-dose-input" placeholder="Dose  (e.g. 10 mg)" aria-label="Dose" maxlength="40" autocomplete="off">
+      <div class="form-row">
+        <button class="btn-primary" id="add-save-btn"   aria-label="Save medication">Save</button>
+        <button class="btn-ghost"   id="add-cancel-btn" aria-label="Cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Settings ── -->
+  <div class="section-label" style="margin-top:26px">Reminder</div>
+  <div class="settings-card">
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Daily reminder</div>
+        <div class="settings-sub" id="notif-sub">Not yet enabled</div>
+      </div>
+      <button class="notif-btn" id="notif-btn" aria-label="Enable notifications">Enable</button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Reminder time</div>
+        <div class="settings-sub">Fires when meds aren't taken yet</div>
+      </div>
+      <input type="time" id="reminder-time-input" aria-label="Reminder time" value="08:00">
+    </div>
+  </div>
+
+  <!-- ── Script ── -->
+  <script>
+    'use strict';
+
+    // ────────────────────────────────────────────────────────────────
+    //  State
+    // ────────────────────────────────────────────────────────────────
+    const STORAGE_KEY = 'morningmeds_v1';
+
+    /** @type {{
+     *   medications: Array<{id:string, name:string, dose:string}>,
+     *   today: string,
+     *   taken: Record<string,boolean>,
+     *   streak: number,
+     *   weekHistory: boolean[],
+     *   reminderTime: string,
+     *   notificationFired: boolean
+     * }} */
+    let S = {
+      medications:      [],
+      today:            '',
+      taken:            {},
+      streak:           0,
+      weekHistory:      [],
+      reminderTime:     '08:00',
+      notificationFired: false
+    };
+
+    function getToday() {
+      const d = new Date();
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try { Object.assign(S, JSON.parse(raw)); } catch (_) {}
+      }
+      // Ensure arrays/objects exist even if storage was partial
+      if (!Array.isArray(S.medications)) S.medications = [];
+      if (!S.taken || typeof S.taken !== 'object') S.taken = {};
+      if (!Array.isArray(S.weekHistory)) S.weekHistory = [];
+      handleDateChange();
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  Midnight reset
+    // ────────────────────────────────────────────────────────────────
+    function handleDateChange() {
+      const today = getToday();
+
+      if (!S.today) {
+        // First ever launch
+        S.today = today;
+        S.medications.forEach(m => { if (!(m.id in S.taken)) S.taken[m.id] = false; });
+        return;
+      }
+
+      if (S.today === today) return; // same day, nothing to do
+
+      // Calculate how many days have passed
+      const msPerDay = 86400000;
+      const last  = new Date(S.today).getTime();
+      const now   = new Date(today).getTime();
+      const daysDiff = Math.max(1, Math.round((now - last) / msPerDay));
+
+      // Was yesterday (the last active day) fully completed?
+      const allDone = S.medications.length > 0 &&
+        S.medications.every(m => S.taken[m.id]);
+
+      // Streak: only continues if exactly 1 day gap and all taken
+      S.streak = (daysDiff === 1 && allDone) ? S.streak + 1 : 0;
+
+      // Push last day's result then fill any skipped days as missed
+      S.weekHistory.push(allDone);
+      for (let i = 1; i < daysDiff; i++) S.weekHistory.push(false);
+      while (S.weekHistory.length > 7) S.weekHistory.shift();
+
+      // Reset for today
+      S.today = today;
+      const fresh = {};
+      S.medications.forEach(m => { fresh[m.id] = false; });
+      S.taken = fresh;
+      S.notificationFired = false;
+
+      saveState();
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  Helpers
+    // ────────────────────────────────────────────────────────────────
+    function allTaken() {
+      return S.medications.length > 0 && S.medications.every(m => S.taken[m.id]);
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  Render
+    // ────────────────────────────────────────────────────────────────
+    function render() {
+      renderStreak();
+      renderMeds();
+      renderSettings();
+    }
+
+    function renderStreak() {
+      document.getElementById('streak-number').textContent = S.streak;
+
+      const container = document.getElementById('week-dots');
+      container.innerHTML = '';
+
+      // Build 7 slots: [6 historical days] + [today]
+      const hist   = S.weekHistory.slice(-6);
+      const blanks = 6 - hist.length;
+      const slots  = [...Array(blanks).fill(null), ...hist]; // 6 past
+
+      // Today slot
+      const todayDone    = allTaken();
+      const todayPartial = !todayDone && S.medications.length > 0 &&
+        S.medications.some(m => S.taken[m.id]);
+
+      const todaySlot = todayDone ? 'done' : todayPartial ? 'partial' : null;
+      const all7 = [...slots, todaySlot];
+
+      const labels = (v, isToday) => {
+        if (isToday) {
+          if (v === 'done')    return 'Today: complete';
+          if (v === 'partial') return 'Today: in progress';
+          return 'Today: not started';
+        }
+        if (v === true)  return 'complete';
+        if (v === false) return 'missed';
+        return 'no data';
+      };
+
+      all7.forEach((val, i) => {
+        const isToday = i === 6;
+        const dot = document.createElement('div');
+        dot.className = 'week-dot';
+        dot.setAttribute('role', 'listitem');
+        dot.setAttribute('aria-label', labels(val, isToday));
+        if (isToday) dot.classList.add('today');
+        if (val === true  || val === 'done')    dot.classList.add('done');
+        else if (val === false)                  dot.classList.add('missed');
+        else if (val === 'partial')              dot.classList.add('partial');
+        container.appendChild(dot);
+      });
+    }
+
+    function renderMeds() {
+      const list   = document.getElementById('med-list');
+      const banner = document.getElementById('completion-banner');
+
+      list.innerHTML = '';
+
+      if (S.medications.length === 0) {
+        banner.style.display = 'none';
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="emo">💊</div>
+            <p>No medications yet.<br>Tap <strong>Add medication</strong> below to get started.</p>
+          </div>`;
+        return;
+      }
+
+      banner.style.display = allTaken() ? 'block' : 'none';
+
+      S.medications.forEach(med => {
+        const taken = !!S.taken[med.id];
+        const card  = document.createElement('div');
+        card.className = 'med-card' + (taken ? ' taken' : '');
+        card.setAttribute('role', 'listitem');
+
+        card.innerHTML = `
+          <div class="med-info">
+            <div class="med-name">${esc(med.name)}</div>
+            ${med.dose ? `<div class="med-dose">${esc(med.dose)}</div>` : ''}
+          </div>
+          <button
+            class="take-btn${taken ? ' taken' : ''}"
+            aria-label="${taken ? 'Undo: mark ' + esc(med.name) + ' as not taken' : 'Mark ' + esc(med.name) + ' as taken'}"
+            data-id="${med.id}">
+            ${taken ? '<span aria-hidden="true">✓</span> Taken' : 'Take'}
+          </button>
+          <button
+            class="del-btn"
+            aria-label="Remove ${esc(med.name)}"
+            data-del="${med.id}">
+            <span aria-hidden="true">×</span>
+          </button>`;
+
+        list.appendChild(card);
+      });
+
+      // Toggle take
+      list.querySelectorAll('.take-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          S.taken[btn.dataset.id] = !S.taken[btn.dataset.id];
+          saveState();
+          render();
+        });
+      });
+
+      // Delete
+      list.querySelectorAll('.del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!confirm('Remove this medication?')) return;
+          S.medications = S.medications.filter(m => m.id !== btn.dataset.del);
+          delete S.taken[btn.dataset.del];
+          saveState();
+          render();
+        });
+      });
+    }
+
+    function renderSettings() {
+      const btn    = document.getElementById('notif-btn');
+      const sub    = document.getElementById('notif-sub');
+      const perm   = ('Notification' in window) ? Notification.permission : 'unsupported';
+      const timeEl = document.getElementById('reminder-time-input');
+
+      timeEl.value = S.reminderTime || '08:00';
+
+      if (perm === 'granted') {
+        btn.textContent = '✓ On';
+        btn.className   = 'notif-btn granted';
+        btn.disabled    = false;
+        sub.textContent = 'Fires at ' + S.reminderTime + ' if meds aren\'t done';
+      } else if (perm === 'denied') {
+        btn.textContent = 'Blocked';
+        btn.className   = 'notif-btn';
+        btn.disabled    = true;
+        sub.textContent = 'Enable notifications in browser settings';
+      } else if (perm === 'unsupported') {
+        btn.textContent = 'Unavailable';
+        btn.className   = 'notif-btn';
+        btn.disabled    = true;
+        sub.textContent = 'This browser doesn\'t support notifications';
+      } else {
+        btn.textContent = 'Enable';
+        btn.className   = 'notif-btn';
+        btn.disabled    = false;
+        sub.textContent = 'Tap to allow daily reminders';
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  Add-form interactions
+    // ────────────────────────────────────────────────────────────────
+    let formOpen = false;
+
+    function setFormOpen(open) {
+      formOpen = open;
+      document.getElementById('add-form').style.display   = open ? 'block' : 'none';
+      document.getElementById('add-toggle').style.display = open ? 'none'  : 'flex';
+      document.getElementById('add-toggle').setAttribute('aria-expanded', String(open));
+      if (open) {
+        document.getElementById('med-name-input').value = '';
+        document.getElementById('med-dose-input').value = '';
+        document.getElementById('med-name-input').focus();
+      }
+    }
+
+    document.getElementById('add-toggle').addEventListener('click', () => setFormOpen(true));
+    document.getElementById('add-cancel-btn').addEventListener('click', () => setFormOpen(false));
+
+    document.getElementById('add-save-btn').addEventListener('click', () => {
+      const name = document.getElementById('med-name-input').value.trim();
+      const dose = document.getElementById('med-dose-input').value.trim();
+      if (!name) { document.getElementById('med-name-input').focus(); return; }
+      S.medications.push({ id: uid(), name, dose });
+      S.taken[S.medications[S.medications.length - 1].id] = false;
+      saveState();
+      setFormOpen(false);
+      render();
+    });
+
+    // Enter key submits
+    ['med-name-input', 'med-dose-input'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('add-save-btn').click();
+        if (e.key === 'Escape') setFormOpen(false);
+      });
+    });
+
+    // ────────────────────────────────────────────────────────────────
+    //  Notifications
+    // ────────────────────────────────────────────────────────────────
+    document.getElementById('notif-btn').addEventListener('click', async () => {
+      if (!('Notification' in window) || Notification.permission === 'granted') return;
+      const result = await Notification.requestPermission();
+      if (result === 'granted') {
+        new Notification('Morning Meds 💊', {
+          body: "You're all set! We'll remind you daily.",
+          tag:  'morning-meds-setup'
+        });
+      }
+      renderSettings();
+    });
+
+    document.getElementById('reminder-time-input').addEventListener('change', e => {
+      S.reminderTime      = e.target.value;
+      S.notificationFired = false; // allow it to fire at the new time today
+      saveState();
+      renderSettings();
+    });
+
+    function checkNotification() {
+      if (!('Notification' in window))          return;
+      if (Notification.permission !== 'granted') return;
+      if (S.notificationFired)                   return;
+      if (allTaken())                            return;
+
+      const now  = new Date();
+      const hhmm = String(now.getHours()).padStart(2, '0') + ':' +
+                   String(now.getMinutes()).padStart(2, '0');
+
+      if (hhmm === (S.reminderTime || '08:00')) {
+        S.notificationFired = true;
+        saveState();
+        new Notification('Morning Meds 💊', {
+          body: 'Time to take your medications!',
+          tag:  'morning-meds-reminder'
+        });
+      }
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  Main loop — poll every minute
+    // ────────────────────────────────────────────────────────────────
+    setInterval(() => {
+      handleDateChange(); // catches midnight rollover
+      checkNotification();
+      render();
+    }, 60 * 1000);
+
+    // ────────────────────────────────────────────────────────────────
+    //  Boot
+    // ────────────────────────────────────────────────────────────────
+    loadState();
+    render();
+  </script>
+</body>
+</html>
