@@ -51,6 +51,7 @@ Morning Meds now appears as a full-screen app icon with no browser chrome.
 morning-meds/
 ├── index.html     ← the complete app (no build step)
 ├── manifest.json  ← PWA manifest (name, theme colour, icons)
+├── sw.js          ← service worker (offline cache + background notifications)
 └── README.md      ← this file
 ```
 
